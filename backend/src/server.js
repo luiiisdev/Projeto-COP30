@@ -9,11 +9,9 @@ const prisma = new PrismaClient();
 const PORT = 3000;
 const JWT_SECRET = "chave-secreta-supersegura";
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Middleware de autenticação
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -26,10 +24,8 @@ function authMiddleware(req, res, next) {
   });
 }
 
-// Rota raiz
 app.get("/", (req, res) => res.send("Servidor COP30 funcionando! 🚀"));
 
-// Registrar usuário
 app.post("/auth/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -49,7 +45,6 @@ app.post("/auth/register", async (req, res) => {
   }
 });
 
-// Login
 app.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -68,13 +63,11 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
-// Informações do usuário logado
 app.get("/me", authMiddleware, async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   res.json(user);
 });
 
-// Cadastrar livro
 app.post("/books", authMiddleware, async (req, res) => {
   const { title, author, type, price } = req.body;
 
@@ -98,7 +91,6 @@ app.post("/books", authMiddleware, async (req, res) => {
   }
 });
 
-// Listar todos os livros
 app.get("/books", async (req, res) => {
   const books = await prisma.book.findMany({
     include: { owner: { select: { id: true, name: true, email: true } } },
@@ -106,11 +98,9 @@ app.get("/books", async (req, res) => {
   res.json(books);
 });
 
-// Listar livros do usuário logado
 app.get("/books/me", authMiddleware, async (req, res) => {
   const books = await prisma.book.findMany({ where: { ownerId: req.user.id } });
   res.json(books);
 });
 
-// Iniciar servidor
 app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
