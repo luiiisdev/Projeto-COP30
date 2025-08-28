@@ -1,28 +1,41 @@
 import { useState } from "react";
-import "../css/Login.css"; // Importa o CSS específico
+import { useNavigate } from "react-router-dom";
+import "../css/Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  async function handleLogin(e) {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      alert("Login bem-sucedido!");
-    } else {
-      alert(JSON.stringify(data));
+    if (!email || !password) {
+      alert("Por favor, preencha todos os campos.");
+      return;
     }
-  }
+
+    try {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token); // salva token no localStorage
+        alert("Login bem-sucedido!");
+        navigate("/"); // redireciona pra Home
+      } else {
+        alert(data.error || "Erro ao logar");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro de conexão com o servidor");
+    }
+  };
 
   return (
     <div className="login-container">
@@ -44,9 +57,7 @@ export default function Login() {
         />
         <button type="submit">Entrar</button>
       </form>
-      <p>
-        Não tem conta? <a href="/register">Registre-se</a>
-      </p>
+      <a href="/register">Ainda não tem conta? Registre-se</a>
     </div>
   );
 }
