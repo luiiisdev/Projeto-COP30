@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../css/Register.css"; // Importa o CSS específico
+import "../css/Register.css"; 
 
 export default function Register() {
   const [name, setName] = useState("");

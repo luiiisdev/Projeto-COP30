@@ -25,9 +25,9 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.token); // salva token no localStorage
+        localStorage.setItem("token", data.token); 
         alert("Login bem-sucedido!");
-        navigate("/"); // redireciona pra Home
+        navigate("/");
       } else {
         alert(data.error || "Erro ao logar");
       }
