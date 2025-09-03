@@ -1,22 +1,41 @@
 import { useState } from "react";
-import "../css/Register.css"; 
+import { useNavigate } from "react-router-dom";
+import "../css/Register.css";
 
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   async function handleRegister(e) {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+    try {
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    const data = await res.json();
-    alert(JSON.stringify(data));
+      const data = await res.json();
+
+      if (res.ok || data.token) {
+        // opcional: já logar automaticamente após registro
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          navigate("/");
+        } else {
+          alert("Registrado com sucesso! Faça login.");
+          navigate("/login");
+        }
+      } else {
+        alert(data.error || "Erro ao registrar");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro de conexão com o servidor");
+    }
   }
 
   return (
