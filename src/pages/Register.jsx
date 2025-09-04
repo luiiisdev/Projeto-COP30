@@ -8,7 +8,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  async function handleRegister(e) {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     try {
@@ -19,16 +19,9 @@ export default function Register() {
       });
 
       const data = await res.json();
-
-      if (res.ok || data.token) {
-        // opcional: já logar automaticamente após registro
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          navigate("/");
-        } else {
-          alert("Registrado com sucesso! Faça login.");
-          navigate("/login");
-        }
+      if (res.ok) {
+        alert("Registrado com sucesso!");
+        navigate("/login");
       } else {
         alert(data.error || "Erro ao registrar");
       }
@@ -36,7 +29,7 @@ export default function Register() {
       console.error(err);
       alert("Erro de conexão com o servidor");
     }
-  }
+  };
 
   return (
     <div className="register-container">

@@ -12,9 +12,11 @@ model User {
   name      String
   email     String   @unique
   password  String
+  avatar    String?   // URL da foto de perfil (opcional)
   books     Book[]
   createdAt DateTime @default(now())
 }
+
 
 model Book {
   id        Int      @id @default(autoincrement())

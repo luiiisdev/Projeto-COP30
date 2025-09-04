@@ -10,11 +10,6 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      alert("Por favor, preencha todos os campos.");
-      return;
-    }
-
     try {
       const res = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
@@ -25,11 +20,8 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // salva token e nome no localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("name", data.name);
-
-        navigate("/"); // redireciona para home
+        localStorage.setItem("token", data.token); // salva token
+        navigate("/"); // vai para a Home
       } else {
         alert(data.error || "Erro ao logar");
       }

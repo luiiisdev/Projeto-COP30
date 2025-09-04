@@ -69,7 +69,6 @@ export default function Home() {
         <div className="user-info-shopee">
           {usuarioLogado ? (
             <>
-              <span>Olá, {usuarioLogado.name}</span>
               <button onClick={handleLogout}>Sair</button>
             </>
           ) : (

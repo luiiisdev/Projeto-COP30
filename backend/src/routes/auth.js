@@ -11,14 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "MinhaChaveSuperSecretaAleatoria123
 
 // Registro
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, avatar } = req.body; // <- agora recebe avatar também
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
+      data: { name, email, password: hashedPassword, avatar }, // <- salva avatar junto
     });
-    res.json({ message: "Usuário criado!", userId: user.id, name: user.name });
+    res.json({ message: "Usuário criado!", userId: user.id, name: user.name, avatar: user.avatar });
   } catch (err) {
     res.status(400).json({ error: "Email já existe" });
   }
@@ -33,9 +33,9 @@ router.post("/login", async (req, res) => {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return res.status(401).json({ error: "Senha incorreta" });
 
-  // Cria token com id e name
+  // Cria token com id, name e avatar
   const token = jwt.sign(
-    { id: user.id, name: user.name },
+    { id: user.id, name: user.name, avatar: user.avatar },
     JWT_SECRET,
     { expiresIn: "1h" }
   );
