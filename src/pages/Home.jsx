@@ -1,22 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../css/Home.css";
-
-function parseJwt(token) {
-  if (!token) return null;
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch {
-    return null;
-  }
-}
 
 export default function Home() {
   const [books, setBooks] = useState([]);
@@ -24,26 +8,39 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [usuarioLogado, setUsuarioLogado] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const usuario = parseJwt(token);
-    setUsuarioLogado(usuario);
-  }, []);
+  const navigate = useNavigate();
 
+  const token = localStorage.getItem("token");
+
+  // Pega usuário logado atualizado
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("http://localhost:3000/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => setUsuarioLogado(data))
+      .catch(err => console.error(err));
+  }, [token]);
+
+  // Pega todos os livros
+  useEffect(() => {
     fetch("http://localhost:3000/books", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(res => res.json())
       .then(data => setBooks(data))
       .catch(err => console.error(err));
-  }, []);
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUsuarioLogado(null);
     window.location.reload();
+  };
+
+  const handleProfileClick = () => {
+    if (usuarioLogado) navigate("/perfil");
   };
 
   const filteredBooks = books
@@ -68,9 +65,18 @@ export default function Home() {
         />
         <div className="user-info-shopee">
           {usuarioLogado ? (
-            <>
-              <button onClick={handleLogout}>Sair</button>
-            </>
+            <img
+              src={usuarioLogado.avatar || "/default-avatar.png"}
+              alt="Avatar do usuário"
+              onClick={handleProfileClick}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                cursor: "pointer",
+                objectFit: "cover",
+              }}
+            />
           ) : (
             <span>Não logado</span>
           )}

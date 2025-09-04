@@ -3,15 +3,20 @@ import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
 
 const app = express();
 const prisma = new PrismaClient();
 const PORT = 3000;
 const JWT_SECRET = "chave-secreta-supersegura";
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+// Auth middleware
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -19,16 +24,29 @@ function authMiddleware(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: "Token inválido" });
-    req.user = user;
+    req.userId = user.id; // guarda só o id para segurança
     next();
   });
 }
 
+// Multer config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${req.userId}${ext}`);
+  },
+});
+const upload = multer({ storage });
+
+// Rotas
 app.get("/", (req, res) => res.send("Servidor COP30 funcionando! 🚀"));
 
+// Registro
 app.post("/auth/register", async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) return res.status(400).json({ error: "Email já cadastrado" });
@@ -45,9 +63,9 @@ app.post("/auth/register", async (req, res) => {
   }
 });
 
+// Login
 app.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ error: "Usuário não encontrado" });
@@ -55,7 +73,11 @@ app.post("/auth/login", async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: "Senha inválida" });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user.id },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
     res.json({ message: "Login bem-sucedido", token });
   } catch (error) {
     console.error(error);
@@ -63,14 +85,33 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+// Dados do usuário logado
 app.get("/me", authMiddleware, async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  const user = await prisma.user.findUnique({ where: { id: req.userId } });
   res.json(user);
 });
 
+// Atualizar avatar
+app.put("/users/avatar", authMiddleware, upload.single("avatar"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
+    const avatarPath = `/uploads/${req.file.filename}`;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.userId },
+      data: { avatar: avatarPath },
+    });
+
+    res.json(updatedUser); // retorna o usuário completo atualizado
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao atualizar avatar" });
+  }
+});
+
+// Criar livro
 app.post("/books", authMiddleware, async (req, res) => {
   const { title, author, type, price } = req.body;
-
   if (!title || !author || !type)
     return res.status(400).json({ error: "Campos obrigatórios faltando" });
 
@@ -81,7 +122,7 @@ app.post("/books", authMiddleware, async (req, res) => {
         author,
         type,
         price: type === "venda" ? price : null,
-        ownerId: req.user.id,
+        ownerId: req.userId,
       },
     });
     res.json({ message: "Livro cadastrado com sucesso", book });
@@ -91,15 +132,17 @@ app.post("/books", authMiddleware, async (req, res) => {
   }
 });
 
+// Listar livros
 app.get("/books", async (req, res) => {
   const books = await prisma.book.findMany({
-    include: { owner: { select: { id: true, name: true, email: true } } },
+    include: { owner: { select: { id: true, name: true, avatar: true } } },
   });
   res.json(books);
 });
 
+// Livros do usuário logado
 app.get("/books/me", authMiddleware, async (req, res) => {
-  const books = await prisma.book.findMany({ where: { ownerId: req.user.id } });
+  const books = await prisma.book.findMany({ where: { ownerId: req.userId } });
   res.json(books);
 });
 

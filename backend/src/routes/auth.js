@@ -1,46 +1,47 @@
 import express from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import multer from "multer";
 import { PrismaClient } from "@prisma/client";
-import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
-dotenv.config();
 const prisma = new PrismaClient();
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "MinhaChaveSuperSecretaAleatoria123!";
 
-// Registro
-router.post("/register", async (req, res) => {
-  const { name, email, password, avatar } = req.body; // <- agora recebe avatar também
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  try {
-    const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, avatar }, // <- salva avatar junto
-    });
-    res.json({ message: "Usuário criado!", userId: user.id, name: user.name, avatar: user.avatar });
-  } catch (err) {
-    res.status(400).json({ error: "Email já existe" });
-  }
+// Configura multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"), // pasta uploads precisa existir
+  filename: (req, file, cb) => {
+    const ext = file.originalname.split(".").pop();
+    cb(null, `avatar-${req.user.id}.${ext}`);
+  },
 });
+const upload = multer({ storage });
 
-// Login
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+// Middleware pra autenticar token e setar req.user
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.sendStatus(401);
 
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) return res.status(401).json({ error: "Senha incorreta" });
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user; // id, name, avatar
+    next();
+  });
+}
 
-  // Cria token com id, name e avatar
-  const token = jwt.sign(
-    { id: user.id, name: user.name, avatar: user.avatar },
-    JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+// Atualiza avatar
+router.put("/users/avatar", authenticateToken, upload.single("avatar"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Arquivo não enviado" });
 
-  res.json({ token });
+  const avatarPath = `/uploads/${req.file.filename}`;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.user.id },
+    data: { avatar: avatarPath },
+  });
+
+  res.json({ avatar: updatedUser.avatar });
 });
 
 export default router;
