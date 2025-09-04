@@ -48,23 +48,21 @@ export default function Profile() {
 
     setUploading(true);
     try {
-      // Atualiza o avatar
-      const res = await fetch("http://localhost:3000/users/avatar", {
+      const response = await fetch("http://localhost:3000/users/avatar", {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Erro ao atualizar avatar");
+      const data = await response.json();
 
-      // Busca o usuário atualizado
-      const updatedUser = await fetch("http://localhost:3000/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(r => r.json());
+      // Atualiza o avatar do usuário
+      setUsuario(prevUsuario => ({
+        ...prevUsuario,
+        avatar: data.avatar,
+      }));
 
-      setUsuario(updatedUser); // atualiza avatar no profile
       setSelectedAvatar(null);
-      setPreviewAvatar(null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -72,24 +70,30 @@ export default function Profile() {
     }
   };
 
-  const handleGoHome = () => {
-    navigate("/"); // volta pra Home
+  const handleHome = () => {
+    navigate("/");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   if (!usuario) return <p className="loading">Carregando...</p>;
 
   return (
     <div className="profile-page">
+      {/* Navbar com botão Voltar */}
       <nav className="navbar-profile">
         <h1 className="logo">📚 DoaLivro</h1>
-        <button className="btn-logout" onClick={handleGoHome}>Voltar para Home</button>
+        <button className="btn-back" onClick={handleHome}>Voltar</button>
       </nav>
 
       <div className="profile-container">
         <div className="profile-header">
           <label className="avatar-label">
             <img
-              src={previewAvatar || usuario.avatar || "/default-avatar.png"}
+              src={previewAvatar || (usuario.avatar ? `http://localhost:3000${usuario.avatar}` : "/default-avatar.png")}
               alt="Avatar"
               className="profile-avatar"
             />
@@ -102,6 +106,8 @@ export default function Profile() {
           )}
           <h2>{usuario.name}</h2>
           <p>{usuario.email}</p>
+
+          {/* Botão de Sair embaixo da foto */}
         </div>
 
         <h3>Seus livros</h3>
@@ -116,6 +122,8 @@ export default function Profile() {
             </div>
           ))}
         </div>
+          <button className="btn-logout" onClick={handleLogout}>Sair</button>
+
       </div>
 
       <footer className="footer-profile">

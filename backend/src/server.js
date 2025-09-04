@@ -24,19 +24,17 @@ function authMiddleware(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: "Token inválido" });
-    req.userId = user.id; // guarda só o id para segurança
+    req.user = user;
     next();
   });
 }
 
 // Multer config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `avatar_${req.userId}${ext}`);
+    cb(null, `avatar_${req.user.id}${ext}`);
   },
 });
 const upload = multer({ storage });
@@ -74,7 +72,7 @@ app.post("/auth/login", async (req, res) => {
     if (!validPassword) return res.status(400).json({ error: "Senha inválida" });
 
     const token = jwt.sign(
-      { id: user.id },
+      { id: user.id, name: user.name, email: user.email, avatar: user.avatar },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -87,7 +85,7 @@ app.post("/auth/login", async (req, res) => {
 
 // Dados do usuário logado
 app.get("/me", authMiddleware, async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.userId } });
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   res.json(user);
 });
 
@@ -95,14 +93,20 @@ app.get("/me", authMiddleware, async (req, res) => {
 app.put("/users/avatar", authMiddleware, upload.single("avatar"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
-    const avatarPath = `/uploads/${req.file.filename}`;
 
+    const avatarPath = `/uploads/${req.file.filename}`;
     const updatedUser = await prisma.user.update({
-      where: { id: req.userId },
+      where: { id: req.user.id },
       data: { avatar: avatarPath },
     });
 
-    res.json(updatedUser); // retorna o usuário completo atualizado
+    const newToken = jwt.sign(
+      { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, avatar: updatedUser.avatar },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ avatar: updatedUser.avatar, token: newToken });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao atualizar avatar" });
@@ -122,7 +126,7 @@ app.post("/books", authMiddleware, async (req, res) => {
         author,
         type,
         price: type === "venda" ? price : null,
-        ownerId: req.userId,
+        ownerId: req.user.id,
       },
     });
     res.json({ message: "Livro cadastrado com sucesso", book });
@@ -135,15 +139,16 @@ app.post("/books", authMiddleware, async (req, res) => {
 // Listar livros
 app.get("/books", async (req, res) => {
   const books = await prisma.book.findMany({
-    include: { owner: { select: { id: true, name: true, avatar: true } } },
+    include: { owner: { select: { id: true, name: true, email: true, avatar: true } } },
   });
   res.json(books);
 });
 
 // Livros do usuário logado
 app.get("/books/me", authMiddleware, async (req, res) => {
-  const books = await prisma.book.findMany({ where: { ownerId: req.userId } });
+  const books = await prisma.book.findMany({ where: { ownerId: req.user.id } });
   res.json(books);
 });
 
+// Inicia servidor
 app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));

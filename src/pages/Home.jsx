@@ -9,7 +9,6 @@ export default function Home() {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
 
   const navigate = useNavigate();
-
   const token = localStorage.getItem("token");
 
   // Pega usuário logado atualizado
@@ -53,7 +52,6 @@ export default function Home() {
 
   return (
     <div className="home-shopee">
-      {/* Navbar */}
       <nav className="navbar-shopee">
         <h1 className="logo">📚 DoaLivro</h1>
         <input
@@ -66,7 +64,7 @@ export default function Home() {
         <div className="user-info-shopee">
           {usuarioLogado ? (
             <img
-              src={usuarioLogado.avatar || "/default-avatar.png"}
+              src={usuarioLogado.avatar ? `http://localhost:3000${usuarioLogado.avatar}` : "/default-avatar.png"}
               alt="Avatar do usuário"
               onClick={handleProfileClick}
               style={{
@@ -83,14 +81,12 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Filtros */}
       <div className="filters-shopee">
         <button onClick={() => setFilter("all")} className={filter === "all" ? "active" : ""}>Todos</button>
         <button onClick={() => setFilter("venda")} className={filter === "venda" ? "active" : ""}>Venda</button>
         <button onClick={() => setFilter("doacao")} className={filter === "doacao" ? "active" : ""}>Doação</button>
       </div>
 
-      {/* Grid de livros */}
       <div className="book-grid-shopee">
         {filteredBooks.map(book => (
           <div className="book-card-shopee" key={book.id}>
@@ -98,7 +94,20 @@ export default function Home() {
             <h3>{book.title}</h3>
             <p>{book.author}</p>
             <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
-            <p>Dono: {book.owner.name}</p>
+            <div className="book-owner-info">
+              <img
+                src={book.owner.avatar ? `http://localhost:3000${book.owner.avatar}` : "/default-avatar.png"}
+                alt={`Avatar de ${book.owner.name}`}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  marginRight: 8,
+                }}
+              />
+              <p>Dono: {book.owner.name}</p>
+            </div>
             {usuarioLogado && book.ownerId !== usuarioLogado.id ? (
               <button>{book.type === "venda" ? "Comprar" : "Doar"}</button>
             ) : (
@@ -108,7 +117,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Footer */}
       <footer className="footer-shopee">
         <p>📚 DoaLivro &copy; 2025</p>
       </footer>
