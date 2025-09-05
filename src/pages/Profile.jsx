@@ -34,6 +34,25 @@ export default function Profile() {
       .catch(err => console.error(err));
   }, [token]);
 
+  // Função para deletar um livro
+  const handleDelete = async (bookId) => {
+    const confirmDelete = window.confirm("Tem certeza que deseja apagar este livro?");
+    if (!confirmDelete) return;
+
+    try {
+        await fetch(`http://localhost:3000/books/${bookId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        // Atualiza a lista de livros, removendo o livro deletado
+        setBooks(books.filter(book => book.id !== bookId));
+    } catch (error) {
+        console.error("Erro ao deletar livro:", error);
+    }
+  };
+
   const handleAvatarSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -85,7 +104,7 @@ export default function Profile() {
     <div className="profile-page">
       {/* Navbar com botão Voltar */}
       <nav className="navbar-profile">
-        <h1 className="logo">📚 DoaLivro</h1>
+        <img src="/logo site.png" alt="DoaFolha Logo" className="navbar-logo" />
         <button className="btn-back" onClick={handleHome}>Voltar</button>
       </nav>
 
@@ -115,20 +134,23 @@ export default function Profile() {
           {books.length === 0 && <p>Você ainda não adicionou livros.</p>}
           {books.map(book => (
             <div className="book-card-profile" key={book.id}>
-              <div className="book-image">📖</div>
+              {/* Adicionado o condicional para exibir a imagem corretamente */}
+              <div className="book-image">
+                {book.image ? <img src={`http://localhost:3000${book.image}`} alt={book.title} style={{ width: 100, height: 140, objectFit: "cover" }} /> : "📖"}
+              </div>
               <h3>{book.title}</h3>
               <p>{book.author}</p>
               <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
+              {/* Botão de apagar adicionado aqui */}
+              <button className="delete-button" onClick={() => handleDelete(book.id)}>
+                Apagar
+              </button>
             </div>
           ))}
         </div>
-          <button className="btn-logout" onClick={handleLogout}>Sair</button>
+        <button className="btn-logout" onClick={handleLogout}>Sair</button>
 
       </div>
-
-      <footer className="footer-profile">
-        <p>📚 DoaLivro &copy; 2025</p>
-      </footer>
     </div>
   );
 }

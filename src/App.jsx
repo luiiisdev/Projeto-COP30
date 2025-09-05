@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
-import Profile from "./pages/Profile"; // importar Profile
+import Profile from "./pages/Profile";
+import AddBookPage from "./pages/AddBookPage"; 
 import PrivateRoute from "./components/PrivateRoute";
 
 export default function App() {
@@ -12,7 +13,6 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Home protegido */}
         <Route
           path="/"
           element={
@@ -22,12 +22,20 @@ export default function App() {
           }
         />
 
-        {/* Profile protegido */}
         <Route
           path="/perfil"
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/add-book"
+          element={
+            <PrivateRoute>
+              <AddBookPage />
             </PrivateRoute>
           }
         />

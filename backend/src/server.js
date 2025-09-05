@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
+import bookRouter from "./routes/book.js";
+import { authMiddleware } from "./middlewares/auth.js"; // Linha correta
 
 const app = express();
 const prisma = new PrismaClient();
@@ -16,20 +18,10 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// Auth middleware
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Token não fornecido" });
+// Remova toda a função authMiddleware daqui:
+// function authMiddleware(req, res, next) { ... }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Token inválido" });
-    req.user = user;
-    next();
-  });
-}
-
-// Multer config
+// Multer config para avatars
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
@@ -113,42 +105,8 @@ app.put("/users/avatar", authMiddleware, upload.single("avatar"), async (req, re
   }
 });
 
-// Criar livro
-app.post("/books", authMiddleware, async (req, res) => {
-  const { title, author, type, price } = req.body;
-  if (!title || !author || !type)
-    return res.status(400).json({ error: "Campos obrigatórios faltando" });
-
-  try {
-    const book = await prisma.book.create({
-      data: {
-        title,
-        author,
-        type,
-        price: type === "venda" ? price : null,
-        ownerId: req.user.id,
-      },
-    });
-    res.json({ message: "Livro cadastrado com sucesso", book });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao cadastrar livro" });
-  }
-});
-
-// Listar livros
-app.get("/books", async (req, res) => {
-  const books = await prisma.book.findMany({
-    include: { owner: { select: { id: true, name: true, email: true, avatar: true } } },
-  });
-  res.json(books);
-});
-
-// Livros do usuário logado
-app.get("/books/me", authMiddleware, async (req, res) => {
-  const books = await prisma.book.findMany({ where: { ownerId: req.user.id } });
-  res.json(books);
-});
+// Use o roteador de livros para as rotas /books
+app.use("/books", bookRouter);
 
 // Inicia servidor
 app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));

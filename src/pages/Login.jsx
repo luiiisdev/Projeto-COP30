@@ -20,8 +20,8 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.token); // salva token
-        navigate("/"); // vai para a Home
+        localStorage.setItem("token", data.token);
+        navigate("/");
       } else {
         alert(data.error || "Erro ao logar");
       }
@@ -32,26 +32,28 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Entrar</button>
-      </form>
-      <a href="/register">Ainda não tem conta? Registre-se</a>
+    <div className="page-container">
+      <div className="login-container">
+        <h2>Login</h2>
+        <form onSubmit={handleLogin}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Entrar</button>
+        </form>
+        <a href="/register">Ainda não tem conta? Registre-se</a>
+      </div>
     </div>
   );
 }
