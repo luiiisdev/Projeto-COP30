@@ -14,6 +14,7 @@ model User {
   password  String
   avatar    String?  // URL da foto de perfil (opcional)
   books     Book[]
+  orders    Order[]  // Relação para pedidos
   createdAt DateTime @default(now())
 }
 
@@ -23,7 +24,7 @@ model Book {
   author    String
   type      String   // "doacao" ou "venda"
   price     Float?   // só se for venda
-  image     String?  // <-- Apenas esta linha
+  image     String?
   owner     User     @relation(fields: [ownerId], references: [id])
   ownerId   Int
   createdAt DateTime @default(now())
@@ -42,4 +43,28 @@ model News {
   title       String
   content     String
   publishedAt DateTime @default(now())
+}
+
+model Order {
+  id                    Int        @id @default(autoincrement())
+  userId                Int
+  user                  User       @relation(fields: [userId], references: [id])
+  shippingAddress       String
+  totalAmount           Float
+  status                String     @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
+  orderDate             DateTime   @default(now())
+  estimatedDeliveryDate DateTime
+  items                 OrderItem[]
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int
+  order      Order   @relation(fields: [orderId], references: [id])
+  bookId     Int
+  bookName   String
+  bookAuthor String?    // agora é opcional
+  bookImage  String?    // agora é opcional
+  quantity   Int
+  price      Float
 }

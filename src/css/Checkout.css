@@ -1,0 +1,141 @@
+/* Página inteira do checkout */
+.checkout-page {
+    min-height: 100vh;
+    margin: 0;
+    width: 100%;
+    background-color: #fdf6e3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Container principal */
+.checkout-container {
+    max-width: 500px;
+    width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.checkout-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Lista de itens do carrinho */
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Cada item do carrinho */
+.cart-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background: #fafafa;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.cart-item:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* Container que agrupa imagem e título */
+.cart-item-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Imagem do livro */
+.cart-item-image {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+/* Título do livro */
+.cart-item-info span {
+    text-align: center;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Botão de remover */
+.cart-item button {
+    background: #ff5e57;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.cart-item button:hover {
+    background: #e04e4a;
+}
+
+/* Total do carrinho */
+.total {
+    text-align: right;
+    font-weight: 600;
+    margin-top: 15px;
+    font-size: 1.1rem;
+}
+
+/* Campo de endereço */
+textarea {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+    font-size: 1rem;
+}
+
+/* Botão finalizar pedido */
+.finalize-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #4caf50;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.finalize-btn:hover {
+    background: #43a047;
+}
+
+/* Mensagem de carrinho vazio */
+.empty-cart {
+    text-align: center;
+    color: #777;
+    font-size: 1rem;
+    margin-top: 40px;
+}

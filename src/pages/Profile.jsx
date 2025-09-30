@@ -6,6 +6,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
   const [books, setBooks] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [showPurchases, setShowPurchases] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -14,13 +16,13 @@ export default function Profile() {
 
   // Pega o usuário logado
   useEffect(() => {
-    if (!token) return navigate("/");
+    if (!token) return navigate("/login");
     fetch("http://localhost:3000/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
       .then(data => setUsuario(data))
-      .catch(() => navigate("/"));
+      .catch(() => navigate("/login"));
   }, [navigate, token]);
 
   // Pega os livros do usuário
@@ -34,22 +36,27 @@ export default function Profile() {
       .catch(err => console.error(err));
   }, [token]);
 
-  // Função para deletar um livro
-  const handleDelete = async (bookId) => {
-    const confirmDelete = window.confirm("Tem certeza que deseja apagar este livro?");
-    if (!confirmDelete) return;
+  // Pega as compras do usuário
+  useEffect(() => {
+    if (!token || !showPurchases) return;
+    fetch("http://localhost:3000/orders/my", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => setPurchases(data))
+      .catch(err => console.error(err));
+  }, [token, showPurchases]);
 
+  const handleDelete = async (bookId) => {
+    if (!window.confirm("Tem certeza que deseja apagar este livro?")) return;
     try {
-        await fetch(`http://localhost:3000/books/${bookId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        // Atualiza a lista de livros, removendo o livro deletado
-        setBooks(books.filter(book => book.id !== bookId));
+      await fetch(`http://localhost:3000/books/${bookId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBooks(books.filter(book => book.id !== bookId));
     } catch (error) {
-        console.error("Erro ao deletar livro:", error);
+      console.error("Erro ao deletar livro:", error);
     }
   };
 
@@ -72,15 +79,8 @@ export default function Profile() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       const data = await response.json();
-
-      // Atualiza o avatar do usuário
-      setUsuario(prevUsuario => ({
-        ...prevUsuario,
-        avatar: data.avatar,
-      }));
-
+      setUsuario(prev => ({ ...prev, avatar: data.avatar }));
       setSelectedAvatar(null);
     } catch (err) {
       console.error(err);
@@ -89,20 +89,14 @@ export default function Profile() {
     }
   };
 
-  const handleHome = () => {
-    navigate("/");
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+  const handleHome = () => navigate("/");
+  const handleLogout = () => { localStorage.removeItem("token"); navigate("/login"); };
+  const togglePurchases = () => setShowPurchases(prev => !prev);
 
   if (!usuario) return <p className="loading">Carregando...</p>;
 
   return (
     <div className="profile-page">
-      {/* Navbar com botão Voltar */}
       <nav className="navbar-profile">
         <img src="/logo site.png" alt="DoaFolha Logo" className="navbar-logo" />
         <button className="btn-back" onClick={handleHome}>Voltar</button>
@@ -126,30 +120,54 @@ export default function Profile() {
           <h2>{usuario.name}</h2>
           <p>{usuario.email}</p>
 
-          {/* Botão de Sair embaixo da foto */}
+          <button className="btn-purchases" onClick={togglePurchases}>
+            {showPurchases ? "Fechar Compras" : "Ver Compras"}
+          </button>
         </div>
 
-        <h3>Seus livros</h3>
-        <div className="book-grid-profile">
-          {books.length === 0 && <p>Você ainda não adicionou livros.</p>}
-          {books.map(book => (
-            <div className="book-card-profile" key={book.id}>
-              {/* Adicionado o condicional para exibir a imagem corretamente */}
-              <div className="book-image">
-                {book.image ? <img src={`http://localhost:3000${book.image}`} alt={book.title} style={{ width: 100, height: 140, objectFit: "cover" }} /> : "📖"}
-              </div>
-              <h3>{book.title}</h3>
-              <p>{book.author}</p>
-              <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
-              {/* Botão de apagar adicionado aqui */}
-              <button className="delete-button" onClick={() => handleDelete(book.id)}>
-                Apagar
-              </button>
+        {!showPurchases && (
+          <>
+            <h3>Seus livros</h3>
+            <div className="book-grid-profile">
+              {books.length === 0 && <p>Você ainda não adicionou livros.</p>}
+              {books.map(book => (
+                <div className="book-card-profile" key={book.id}>
+                  <div className="book-image">
+                    {book.image ? <img src={`http://localhost:3000${book.image}`} alt={book.title} /> : "📖"}
+                  </div>
+                  <h3>{book.title}</h3>
+                  <p>{book.author}</p>
+                  <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
+                  <button className="delete-button" onClick={() => handleDelete(book.id)}>Apagar</button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <button className="btn-logout" onClick={handleLogout}>Sair</button>
+          </>
+        )}
 
+        {showPurchases && (
+          <>
+            <h3>Suas Compras</h3>
+            <div className="book-grid-profile">
+              {purchases.length === 0 && <p>Você ainda não realizou compras.</p>}
+              {purchases.map(order =>
+                order.items.map(item => (
+                  <div className="book-card-profile" key={item.id}>
+                    <div className="book-image">
+                      {item.bookImage ? <img src={`http://localhost:3000${item.bookImage}`} alt={item.bookName} /> : "📖"}
+                    </div>
+                    <h3>{item.bookName}</h3>
+                    <p>Autor: {item.bookAuthor || "Desconhecido"}</p>
+                    <p>Preço: R$ {item.price}</p>
+                    <p>Entrega estimada: {new Date(order.estimatedDeliveryDate).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
+
+        <button className="btn-logout" onClick={handleLogout}>Sair</button>
       </div>
     </div>
   );
