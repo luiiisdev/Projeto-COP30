@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../css/Cart.css"; // <-- importa o CSS
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
@@ -9,38 +10,32 @@ export default function CartPage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Carrega usuário logado
   useEffect(() => {
     if (!token) return;
     fetch("http://localhost:3000/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
-      .then(data => setUsuarioLogado(data))
-      .catch(() => navigate("/"));
+      .then(data => {
+        setUsuarioLogado(data);
+        const savedCart = JSON.parse(localStorage.getItem(`cart_${data.id}`) || "[]");
+        setCart(savedCart);
+      })
+      .catch(() => navigate("/login"));
   }, [navigate, token]);
 
-  // Carrega carrinho
-  useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(savedCart);
-  }, []);
-
-  // Remove livro do carrinho
   const removeFromCart = (bookId) => {
     const newCart = cart.filter(b => b.id !== bookId);
     setCart(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
+    if (usuarioLogado) localStorage.setItem(`cart_${usuarioLogado.id}`, JSON.stringify(newCart));
   };
 
-  // Finaliza compra
   const handleCheckout = async () => {
     if (!address) return alert("Informe o endereço de entrega");
     if (!usuarioLogado) return alert("Usuário não autenticado");
     if (cart.length === 0) return alert("Carrinho vazio");
 
     setLoading(true);
-
     try {
       const response = await fetch("http://localhost:3000/orders", {
         method: "POST",
@@ -53,15 +48,13 @@ export default function CartPage() {
           address,
         }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         alert("Compra realizada com sucesso!");
-        localStorage.removeItem("cart");
+        localStorage.removeItem(`cart_${usuarioLogado.id}`);
         setCart([]);
         setAddress("");
-        navigate("/"); // volta para a Home
+        navigate("/");
       } else {
         alert(data.error || "Erro ao finalizar compra");
       }
@@ -75,52 +68,52 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div style={{ padding: 20 }}>
+      <div className="empty-cart">
         <h2>Seu carrinho está vazio 😢</h2>
         <button onClick={() => navigate("/")}>Voltar para a Home</button>
       </div>
     );
   }
 
-  // Calcula total
   const total = cart.reduce((sum, b) => sum + (b.price || 0), 0);
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="cart-container">
       <h2>Seu Carrinho</h2>
-      <div>
+      <div className="cart-items">
         {cart.map(book => (
-          <div key={book.id} style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
+          <div key={book.id} className="cart-item">
             <img
               src={book.image ? `http://localhost:3000${book.image}` : "/default-avatar.png"}
               alt={book.title}
-              width={80}
-              style={{ marginRight: 10 }}
             />
-            <div style={{ flex: 1 }}>
+            <div className="cart-item-info">
               <p><strong>{book.title}</strong> - {book.author}</p>
               <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
             </div>
-            <button onClick={() => removeFromCart(book.id)}>❌ Remover</button>
+            <button onClick={() => removeFromCart(book.id)}>❌</button>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: 20 }}>
+      <div className="cart-address">
         <label>
           Endereço de entrega:
           <input
             type="text"
             value={address}
             onChange={e => setAddress(e.target.value)}
-            style={{ width: "100%", marginTop: 5 }}
           />
         </label>
       </div>
 
-      <h3 style={{ marginTop: 20 }}>Total: R$ {total.toFixed(2)}</h3>
+      <div className="cart-total">Total: R$ {total.toFixed(2)}</div>
 
-      <button onClick={handleCheckout} disabled={loading} style={{ marginTop: 20 }}>
+      <button
+        className="checkout-button"
+        onClick={handleCheckout}
+        disabled={loading}
+      >
         {loading ? "Finalizando..." : "Finalizar Compra"}
       </button>
     </div>

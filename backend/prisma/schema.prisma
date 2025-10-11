@@ -16,6 +16,11 @@ model User {
   books     Book[]
   orders    Order[]  // Relação para pedidos
   createdAt DateTime @default(now())
+
+  // Relação para conversas
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+  messages            Message[]
 }
 
 model Book {
@@ -46,15 +51,14 @@ model News {
 }
 
 model Order {
-  id                    Int        @id @default(autoincrement())
-  userId                Int
-  user                  User       @relation(fields: [userId], references: [id])
-  shippingAddress       String
-  totalAmount           Float
-  status                String     @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
-  orderDate             DateTime   @default(now())
-  estimatedDeliveryDate DateTime
-  items                 OrderItem[]
+  id              Int        @id @default(autoincrement())
+  userId          Int
+  user            User       @relation(fields: [userId], references: [id])
+  shippingAddress String
+  totalAmount     Float
+  status          String     @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED
+  orderDate       DateTime   @default(now())
+  items           OrderItem[]
 }
 
 model OrderItem {
@@ -67,4 +71,25 @@ model OrderItem {
   bookImage  String?    // agora é opcional
   quantity   Int
   price      Float
+}
+
+// --- Novas tabelas de conversas ---
+model Conversation {
+  id         Int       @id @default(autoincrement())
+  buyerId    Int
+  buyer      User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  sellerId   Int
+  seller     User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       Int
+  sender         User         @relation(fields: [senderId], references: [id])
+  content        String
+  createdAt      DateTime     @default(now())
 }

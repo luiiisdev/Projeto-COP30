@@ -6,6 +6,8 @@ import Profile from "./pages/Profile";
 import AddBookPage from "./pages/AddBookPage"; 
 import CartPage from "./pages/CartPage";
 import PrivateRoute from "./components/PrivateRoute";
+import ConversationsPage from "./pages/ConversationsPage";
+import ChatPage from "./pages/ChatPage";
 
 export default function App() {
   return (
@@ -14,7 +16,6 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Rotas privadas */}
         <Route
           path="/"
           element={
@@ -44,6 +45,23 @@ export default function App() {
           element={
             <PrivateRoute>
               <CartPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/conversations"
+          element={
+            <PrivateRoute>
+              <ConversationsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/conversations/:id"
+          element={
+            <PrivateRoute>
+              <ChatPage />
             </PrivateRoute>
           }
         />

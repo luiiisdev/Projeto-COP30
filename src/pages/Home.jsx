@@ -16,7 +16,13 @@ export default function Home() {
     if (!token) return;
     fetch("http://localhost:3000/me", { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
-      .then(data => setUsuarioLogado(data));
+      .then(data => {
+        setUsuarioLogado(data);
+
+        // Carrega carrinho específico do usuário
+        const savedCart = JSON.parse(localStorage.getItem(`cart_${data.id}`) || "[]");
+        setCart(savedCart);
+      });
   }, [token]);
 
   // Carrega livros
@@ -26,20 +32,16 @@ export default function Home() {
       .then(data => setBooks(data));
   }, [token]);
 
-  // Carrega carrinho do localStorage
-  useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(savedCart);
-  }, []);
-
   const filteredBooks = books
     .filter(b => filter === "all" || b.type === filter)
     .filter(b => b.title.toLowerCase().includes(search.toLowerCase()));
 
   const addToCart = (book) => {
+    if (!usuarioLogado) return alert("Faça login para adicionar livros ao carrinho");
+
     setCart(prev => {
       const newCart = [...prev, book];
-      localStorage.setItem("cart", JSON.stringify(newCart));
+      localStorage.setItem(`cart_${usuarioLogado.id}`, JSON.stringify(newCart));
       return newCart;
     });
   };
@@ -62,6 +64,7 @@ export default function Home() {
               <button onClick={() => navigate("/cart")}>
                 🛒 Carrinho ({cart.length})
               </button>
+              <button onClick={() => navigate("/conversations")}>💬 Conversas</button> {/* BOTÃO ADICIONADO */}
               <img
                 src={usuarioLogado.avatar ? `http://localhost:3000${usuarioLogado.avatar}` : "/default-avatar.png"}
                 alt="Avatar"

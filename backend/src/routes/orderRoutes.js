@@ -1,5 +1,9 @@
+import express from "express";
+import authMiddleware from "../middlewares/authMiddleware.js";
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
+const router = express.Router();
 
 // Criar pedido
 export const createOrder = async (req, res) => {
@@ -12,18 +16,15 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: "Nenhum livro selecionado" });
     if (!address) return res.status(400).json({ error: "Endereço não fornecido" });
 
-    // Buscar livros
     const booksFound = await prisma.book.findMany({ where: { id: { in: bookIds } } });
     if (booksFound.length !== bookIds.length)
       return res.status(400).json({ error: "Um ou mais livros não foram encontrados" });
 
-    // Criar pedido
     const order = await prisma.order.create({
       data: {
         userId,
         shippingAddress: address,
         totalAmount: booksFound.reduce((sum, b) => sum + (b.price || 0), 0),
-        estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         items: {
           create: booksFound.map(b => ({
             bookId: b.id,
@@ -45,7 +46,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Pegar todas as compras do usuário logado
+// Pegar compras do usuário
 export const getMyOrders = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -63,3 +64,43 @@ export const getMyOrders = async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar compras" });
   }
 };
+
+// Atualizar status do pedido
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    if (!userId) return res.status(401).json({ error: "Usuário não autenticado" });
+    if (!["PENDING", "DELIVERED"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: Number(orderId) } });
+    if (!order) return res.status(404).json({ error: "Pedido não encontrado" });
+
+    // Só o dono do pedido pode atualizar
+    if (order.userId !== userId) {
+      return res.status(403).json({ error: "Você não tem permissão para alterar este pedido" });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: Number(orderId) },
+      data: { status },
+      include: { items: true }
+    });
+
+    res.json(updatedOrder);
+  } catch (err) {
+    console.error("Erro ao atualizar pedido:", err);
+    res.status(500).json({ error: "Erro ao atualizar pedido" });
+  }
+};
+
+// Rotas
+router.post("/", authMiddleware, createOrder);
+router.get("/my", authMiddleware, getMyOrders);
+router.put("/:orderId", authMiddleware, updateOrderStatus);
+
+export default router;

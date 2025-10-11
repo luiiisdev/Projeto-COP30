@@ -1,5 +1,3 @@
-/* src/css/Home.css */
-
 html, body {
   margin: 0;
   padding: 0;
@@ -8,6 +6,7 @@ html, body {
   background-color: #fdf6e3;
   overflow-x: hidden;
   color: #5d4037;
+  font-size: 16px;
 }
 
 #root, .home-shopee {
@@ -17,30 +16,42 @@ html, body {
   width: 100%;
 }
 
+
+
 .navbar-shopee {
   display: flex;
+  flex-wrap: wrap; 
   justify-content: space-between;
   align-items: center;
-  padding: 15px 50px;
+  padding: 15px 5vw; 
   background: #8d6e63;
   color: white;
   flex-shrink: 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.navbar-brand {
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  flex-shrink: 0; 
+}
+
 .logo { 
-  font-size: 28px; 
+  font-size: 1.75rem; 
   font-weight: bold; 
+  margin-right: 0; 
 }
 
 .navbar-logo {
   height: 60px;
-  margin-right: 20px;
+  margin-right: 0; 
 }
 
 .search-bar {
-  flex: 1;
-  margin: 0 20px;
+  flex-grow: 1; 
+  min-width: 200px;
+  margin: 10px 20px;
   padding: 10px 15px;
   border-radius: 8px;
   border: none;
@@ -54,6 +65,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap; 
 }
 
 .user-info-shopee img {
@@ -81,16 +93,17 @@ html, body {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
+
 .filters-shopee {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  margin: 20px 5vw;
+  flex-wrap: wrap; 
 }
 
 .filters-shopee button {
-  margin: 0 12px 10px 12px;
-  padding: 12px 20px;
+  margin: 0 8px 10px 8px;
+  padding: 10px 18px; 
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -107,13 +120,15 @@ html, body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+
 .book-grid-shopee {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   justify-content: center;
   gap: 15px;
-  width: 90%;
-  padding: 20px;
+  width: 90vw;
+  max-width: 1200px;
+  padding: 20px 0;
   margin: 0 auto;
   box-sizing: border-box;
   flex-grow: 1;
@@ -135,7 +150,7 @@ html, body {
 }
 
 .book-card-shopee h3 {
-  font-size: 1rem;
+  font-size: 1rem; 
   margin-top: 10px;
   margin-bottom: 5px;
   white-space: nowrap;
@@ -146,7 +161,7 @@ html, body {
 
 .book-card-shopee p {
   margin: 3px 0;
-  font-size: 0.85rem;
+  font-size: 0.85rem; 
   color: #8d6e63;
 }
 
@@ -188,13 +203,96 @@ html, body {
   margin: 0;
 }
 
+
 .footer-shopee {
   background: #8d6e63;
   color: white;
   text-align: center;
   padding: 15px 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   flex-shrink: 0;
   width: 100%;
   box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 992px) {
+  .navbar-shopee {
+    padding: 15px 3vw; 
+    justify-content: space-around;
+  }
+
+  .search-bar {
+    max-width: none; 
+    flex-basis: 100%; 
+    margin: 10px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-shopee {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px 20px;
+  }
+
+  .navbar-brand,
+  .user-info-shopee {
+    width: 100%; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navbar-brand {
+    justify-content: flex-start; 
+  }
+
+  .search-bar {
+    width: 100%;
+    margin: 10px 0;
+  }
+  
+  .book-grid-shopee {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    padding: 10px;
+    width: 95vw;
+  }
+
+  .book-card-shopee {
+    padding: 10px 5px;
+  }
+
+  .filters-shopee {
+    flex-direction: column;
+    align-items: center;
+    margin: 15px 0;
+  }
+
+  .filters-shopee button {
+    width: 90%;
+    margin: 5px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1.5rem; 
+  }
+
+  .navbar-logo {
+    height: 40px;
+  }
+
+  .book-image {
+    height: 120px;
+  }
+
+  .book-card-shopee h3 {
+    font-size: 0.9rem;
+  }
+
+  .book-card-shopee p {
+    font-size: 0.75rem;
+  }
 }

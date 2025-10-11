@@ -8,18 +8,17 @@ import path from "path";
 import bookRouter from "./routes/book.js";
 import { authMiddleware } from "./middlewares/auth.js"; 
 import * as orderController from "./controllers/orderController.js"; 
+import conversationRouter from "./routes/conversationRoutes.js";
 
 const app = express();
 const prisma = new PrismaClient();
 const PORT = 3000;
 const JWT_SECRET = "chave-secreta-supersegura";
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// Multer config para avatars
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, "uploads/"),
     filename: (req, file, cb) => {
@@ -29,7 +28,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Rotas
+// Rotas básicas
 app.get("/", (req, res) => res.send("Servidor COP30 funcionando! 🚀"));
 
 // Registro
@@ -103,14 +102,15 @@ app.put("/users/avatar", authMiddleware, upload.single("avatar"), async (req, re
     }
 });
 
-// Criar Pedido
+// Pedidos
 app.post("/orders", authMiddleware, orderController.createOrder);
-
-// Listar pedidos do usuário logado
 app.get("/orders/my", authMiddleware, orderController.getMyOrders);
+app.put("/orders/:orderId", authMiddleware, orderController.updateOrderStatus); // ✅ PUT atualizado
 
 // Rotas de livros
 app.use("/books", bookRouter);
 
-// Inicia servidor
+// Rotas de conversas
+app.use("/conversations", conversationRouter);
+
 app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));

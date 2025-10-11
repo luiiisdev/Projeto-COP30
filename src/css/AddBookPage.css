@@ -1,37 +1,141 @@
-.add-book-form {
+/* src/css/AddBookPage.css - CÓDIGO FINAL DE PRODUÇÃO */
+
+/* =================================
+   1. CONTAINER DA PÁGINA (AddBookPage.jsx)
+   ================================= */
+.add-book-container {
+    display: flex;
+    justify-content: center;
+    /* Espaçamento do topo para afastar da borda/Navbar */
+    padding-top: 50px; 
+    /* Altura ajustada para ocupar o restante da tela sem forçar barra de rolagem */
+    min-height: calc(100vh - 50px); 
+    box-sizing: border-box;
+    background-color: #fdf6e3; 
+}
+
+
+/* =================================
+   2. ESTILOS DO FORMULÁRIO (.add-book-shopee)
+   ================================= */
+
+.add-book-shopee {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px; 
+  
+  /* Estilos do card */
   background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  max-width: 800px;
-  width: 100%;
+  padding: 35px; 
+  border-radius: 12px; 
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15); 
+  max-width: 650px; 
+  width: 90%; 
+  
+  /* ⚠️ CORREÇÃO: Margem superior removida para alinhar no topo. */
+  margin: 0 auto; 
+  
   align-items: flex-start;
+  box-sizing: border-box;
 }
 
-.add-book-form input,
-.add-book-form select {
-  flex: 1 1 180px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+/* Estilo do Título <h2> */
+.add-book-shopee h2 {
+    width: 100%; 
+    margin-bottom: 25px; 
+    color: #5d4037;
+    font-size: 1.8rem; 
+    text-align: center; 
+    border-bottom: 2px solid #efebe9;
+    padding-bottom: 15px; 
 }
 
-.add-book-form button {
+
+/* Estilo base para Inputs e Selects (exclui file e number) */
+.add-book-shopee input:not([type="file"]):not([type="number"]),
+.add-book-shopee select {
+  /* Alinhamento em 2 colunas */
+  flex: 1 1 calc(50% - 10px); 
+  min-width: 150px; 
+
+  padding: 12px; 
+  border-radius: 8px; 
+  border: 1px solid #a1887f; 
+  font-size: 1rem;
+  color: #5d4037;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background-color: #f8f8f8;
+}
+
+/* Input de Preço (number) - Ocupa 100% da linha quando visível */
+.add-book-shopee input[type="number"] {
+  flex: 1 1 100%; 
+  padding: 12px; 
+  border-radius: 8px; 
+  border: 1px solid #a1887f; 
+  font-size: 1rem;
+  color: #5d4037;
+  background-color: #f8f8f8;
+}
+
+/* Input de Arquivo (file) - Ocupa 100% da linha */
+.add-book-shopee input[type="file"] {
+    flex: 1 1 100%; 
+    padding: 12px; 
+    border: 1px solid #a1887f;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    border-radius: 8px; 
+    box-sizing: border-box; 
+}
+
+
+/* Efeito de foco otimizado */
+.add-book-shopee input:focus,
+.add-book-shopee select:focus {
+    outline: none;
+    border-color: #ff9100;
+    box-shadow: 0 0 0 3px rgba(255, 145, 0, 0.3);
+    background-color: #fff;
+}
+
+/* Botão de Submissão */
+.add-book-shopee button {
   flex: 1 1 100%;
-  padding: 10px 20px;
+  padding: 16px 20px;
   border: none;
-  border-radius: 4px;
-  background: #4CAF50;
+  border-radius: 8px;
+  background: #8d6e63; 
   color: white;
+  font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
 }
 
-.add-book-form button:hover {
-  background: #45a049;
+.add-book-shopee button:hover {
+  background: #5d4037;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* =================================
+   3. RESPONSIVIDADE
+   ================================= */
+@media (max-width: 650px) { 
+  .add-book-shopee {
+    padding: 20px;
+    gap: 15px;
+    width: 95%; 
+    margin: 0 auto;
+  }
+
+  .add-book-shopee input,
+  .add-book-shopee select,
+  .add-book-shopee button {
+    flex: 1 1 100%; 
+    font-size: 0.95rem;
+  }
 }

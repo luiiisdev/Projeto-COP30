@@ -12,24 +12,15 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: "Nenhum livro selecionado" });
     if (!address) return res.status(400).json({ error: "Endereço não fornecido" });
 
-    // Buscar livros
     const booksFound = await prisma.book.findMany({ where: { id: { in: bookIds } } });
     if (booksFound.length !== bookIds.length)
       return res.status(400).json({ error: "Um ou mais livros não foram encontrados" });
 
-    // Checar se algum livro pertence ao próprio usuário
-    const ownsBook = booksFound.some(b => b.ownerId === userId);
-    if (ownsBook) {
-      return res.status(400).json({ error: "Você não pode comprar seus próprios livros" });
-    }
-
-    // Criar pedido
     const order = await prisma.order.create({
       data: {
         userId,
         shippingAddress: address,
         totalAmount: booksFound.reduce((sum, b) => sum + (b.price || 0), 0),
-        estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias
         items: {
           create: booksFound.map(b => ({
             bookId: b.id,
@@ -41,9 +32,7 @@ export const createOrder = async (req, res) => {
           }))
         }
       },
-      include: {
-        items: true
-      }
+      include: { items: true }
     });
 
     res.json(order);
@@ -53,7 +42,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Pegar todas as compras do usuário
+// Listar pedidos do usuário
 export const getMyOrders = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -61,9 +50,7 @@ export const getMyOrders = async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where: { userId },
-      include: {
-        items: true
-      },
+      include: { items: true },
       orderBy: { orderDate: "desc" }
     });
 
@@ -71,5 +58,29 @@ export const getMyOrders = async (req, res) => {
   } catch (err) {
     console.error("Erro ao buscar pedidos:", err);
     res.status(500).json({ error: "Erro ao buscar compras" });
+  }
+};
+
+// Atualizar status do pedido
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    console.log("updateOrderStatus hit", req.params, req.body);
+
+    if (!["PENDING", "DELIVERED"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(orderId) },
+      data: { status },
+    });
+
+    res.json(order);
+  } catch (err) {
+    console.error("Erro ao atualizar pedido:", err);
+    res.status(500).json({ error: "Erro ao atualizar pedido" });
   }
 };
