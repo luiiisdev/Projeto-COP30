@@ -11,7 +11,7 @@ export default function Home() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Carrega usuário logado
+  // 🔹 Carrega usuário logado
   useEffect(() => {
     if (!token) return;
     fetch("http://localhost:3000/me", { headers: { Authorization: `Bearer ${token}` } })
@@ -19,13 +19,12 @@ export default function Home() {
       .then(data => {
         setUsuarioLogado(data);
 
-        // Carrega carrinho específico do usuário
         const savedCart = JSON.parse(localStorage.getItem(`cart_${data.id}`) || "[]");
         setCart(savedCart);
       });
   }, [token]);
 
-  // Carrega livros
+  // 🔹 Carrega livros
   useEffect(() => {
     fetch("http://localhost:3000/books", { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       .then(res => res.json())
@@ -61,10 +60,6 @@ export default function Home() {
           {usuarioLogado && (
             <>
               <button onClick={() => navigate("/add-book")}>➕ Adicionar Livro</button>
-              <button onClick={() => navigate("/cart")}>
-                🛒 Carrinho ({cart.length})
-              </button>
-              <button onClick={() => navigate("/conversations")}>💬 Conversas</button> {/* BOTÃO ADICIONADO */}
               <img
                 src={usuarioLogado.avatar ? `http://localhost:3000${usuarioLogado.avatar}` : "/default-avatar.png"}
                 alt="Avatar"
@@ -92,13 +87,31 @@ export default function Home() {
                 <p>📖</p>
               )}
             </div>
+
             <h3>{book.title}</h3>
             <p>{book.author}</p>
-            <p>{book.type === "venda" ? `R$ ${book.price}` : "Doação"}</p>
+            <p>{book.type === "venda" ? `💰 R$ ${book.price}` : "Doação"}</p>
+
+              {/* 🔹 Contato direto (WhatsApp se disponível) */}
+            <p className="book-contact">
+              📞 Contato:{" "}
+              {book.contact ? (
+                <a
+                  href={`https://wa.me/${book.contact.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#25D366", textDecoration: "none" }}
+                >
+                  {book.contact}
+                </a>
+              ) : (
+                "não informado"
+              )}
+            </p>
+
+            {/* 🔹 Dono do livro */}
             <div
               className="book-owner-info"
-              onClick={() => navigate(`/users/${book.owner.id}`)}
-              style={{ cursor: "pointer" }}
             >
               <img
                 src={book.owner.avatar ? `http://localhost:3000${book.owner.avatar}` : "/default-avatar.png"}
@@ -106,7 +119,9 @@ export default function Home() {
               />
               <p>Dono: {book.owner.name}</p>
             </div>
-            <button onClick={() => addToCart(book)}>🛒 Adicionar ao carrinho</button>
+
+            
+
           </div>
         ))}
       </div>

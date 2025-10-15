@@ -29,6 +29,7 @@ model Book {
   author    String
   type      String   // "doacao" ou "venda"
   price     Float?   // só se for venda
+  contact   String?
   image     String?
   owner     User     @relation(fields: [ownerId], references: [id])
   ownerId   Int

@@ -161,10 +161,6 @@ export default function Profile() {
 
           <h2>{usuario.name}</h2>
           <p>{usuario.email}</p>
-
-          <button className="btn-purchases" onClick={togglePurchases}>
-            {showPurchases ? "Fechar Compras" : "Ver Compras"}
-          </button>
         </div>
 
         {!showPurchases ? (

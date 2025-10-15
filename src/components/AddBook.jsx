@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "../css/AddBookPage.css";
-
 import { useNavigate } from "react-router-dom";
 
 export default function AddBook({ token, onAdd }) {
@@ -8,17 +7,20 @@ export default function AddBook({ token, onAdd }) {
   const [author, setAuthor] = useState("");
   const [type, setType] = useState("doacao");
   const [price, setPrice] = useState("");
+  const [contact, setContact] = useState("");
   const [file, setFile] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !author || !type) return alert("Preencha todos os campos!");
+    if (!title || !author || !type || !contact)
+      return alert("Preencha todos os campos!");
 
     const formData = new FormData();
     formData.append("title", title);
     formData.append("author", author);
     formData.append("type", type);
+    formData.append("contact", contact); // 👈 adiciona aqui
     if (type === "venda") formData.append("price", price);
     if (file) formData.append("image", file);
 
@@ -68,7 +70,17 @@ export default function AddBook({ token, onAdd }) {
           onChange={(e) => setPrice(e.target.value)}
         />
       )}
-      <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
+      <input
+        type="text"
+        placeholder="Contato (WhatsApp, telefone...)"
+        value={contact}
+        onChange={(e) => setContact(e.target.value)}
+      />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files[0])}
+      />
       <button type="submit">Adicionar Livro</button>
     </form>
   );

@@ -1,5 +1,3 @@
-// src/routes/book.js
-
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middlewares/auth.js";
@@ -10,10 +8,10 @@ import fs from "fs";
 const router = Router();
 const prisma = new PrismaClient();
 
-// Multer config
+// 📂 Configuração do multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = "uploads"; // Caminho corrigido
+    const uploadDir = "uploads";
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
@@ -23,18 +21,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Criar livro com imagem
+// 🟢 Criar livro com imagem e contato
 router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
-  const { title, author, type, price } = req.body;
-  if (!title || !author || !type) {
+  const { title, author, type, price, contact } = req.body;
+
+  if (!title || !author || !type || !contact) {
     return res.status(400).json({ error: "Preencha todos os campos obrigatórios" });
   }
+
   try {
     const book = await prisma.book.create({
       data: {
         title,
         author,
         type,
+        contact, // ✅ salva o contato
         price: type === "venda" ? Number(price) : null,
         ownerId: req.user.id,
         image: req.file ? `/uploads/${req.file.filename}` : null,
@@ -47,7 +48,7 @@ router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   }
 });
 
-// Listar todos livros
+// 📗 Listar todos os livros
 router.get("/", async (req, res) => {
   try {
     const books = await prisma.book.findMany({
@@ -60,7 +61,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Listar livros do usuário logado
+// 📘 Listar livros do usuário logado
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const books = await prisma.book.findMany({
@@ -73,7 +74,7 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
-// Detalhes de um livro
+// 📙 Detalhes de um livro
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -89,7 +90,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Deletar livro
+// 🗑️ Deletar livro
 router.delete("/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
   try {
